@@ -1,4 +1,9 @@
-import type { ChatMessage, TTSQueueItem, TTSSettings, ServiceEvents } from '../types';
+import type {
+  ChatMessage,
+  TTSQueueItem,
+  TTSSettings,
+  ServiceEvents,
+} from "../types";
 
 /**
  * Service for handling text-to-speech functionality using Web Speech API
@@ -24,12 +29,12 @@ export class TTSService {
    */
   private initializeEventListeners(): void {
     const events: (keyof ServiceEvents)[] = [
-      'tts:started',
-      'tts:ended',
-      'tts:error'
+      "tts:started",
+      "tts:ended",
+      "tts:error",
     ];
-    
-    events.forEach(event => {
+
+    events.forEach((event) => {
       this.eventListeners.set(event, new Set());
     });
   }
@@ -63,10 +68,13 @@ export class TTSService {
   /**
    * Emit event to all listeners
    */
-  private emit<K extends keyof ServiceEvents>(event: K, data: ServiceEvents[K]): void {
+  private emit<K extends keyof ServiceEvents>(
+    event: K,
+    data: ServiceEvents[K]
+  ): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
-      listeners.forEach(listener => {
+      listeners.forEach((listener) => {
         try {
           listener(data);
         } catch (error) {
@@ -81,32 +89,36 @@ export class TTSService {
    * Requirements: 2.1
    */
   private async initializeVoices(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       let attempts = 0;
       const maxAttempts = 50; // 5 seconds max wait time
-      
+
       // Voices might not be immediately available, so we need to wait
       const loadVoices = () => {
         attempts++;
         this.availableVoices = this.synthesis.getVoices();
-        
+
         if (this.availableVoices.length > 0) {
           this.isInitialized = true;
-          
+
           // Set default voice if none is selected
           if (!this.settings.voice && this.availableVoices.length > 0) {
             // Prefer English voices
-            const englishVoice = this.availableVoices.find(voice => 
-              voice.lang.startsWith('en')
+            const englishVoice = this.availableVoices.find((voice) =>
+              voice.lang.startsWith("en")
             );
             this.settings.voice = englishVoice || this.availableVoices[0];
           }
-          
-          console.log(`TTS initialized with ${this.availableVoices.length} voices`);
+
+          console.log(
+            `TTS initialized with ${this.availableVoices.length} voices`
+          );
           resolve();
         } else if (attempts >= maxAttempts) {
           // Timeout - mark as initialized anyway but with no voices
-          console.warn('TTS voices not loaded after timeout, continuing without voices');
+          console.warn(
+            "TTS voices not loaded after timeout, continuing without voices"
+          );
           this.isInitialized = true;
           resolve();
         } else {
@@ -116,14 +128,14 @@ export class TTSService {
       };
 
       // Some browsers fire this event when voices are loaded
-      if ('onvoiceschanged' in this.synthesis) {
+      if ("onvoiceschanged" in this.synthesis) {
         this.synthesis.onvoiceschanged = () => {
           if (!this.isInitialized) {
             loadVoices();
           }
         };
       }
-      
+
       // Also try immediately in case voices are already available
       loadVoices();
     });
@@ -141,14 +153,7 @@ export class TTSService {
    * Check if TTS is supported and initialized
    */
   public isSupported(): boolean {
-    return 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-  }
-
-  /**
-   * Check if TTS is fully initialized with voices
-   */
-  public isInitialized(): boolean {
-    return this.isInitialized && this.availableVoices.length > 0;
+    return "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
   }
 
   /**
@@ -157,7 +162,7 @@ export class TTSService {
    */
   public updateSettings(newSettings: Partial<TTSSettings>): void {
     this.settings = { ...this.settings, ...newSettings };
-    
+
     // If TTS is disabled, stop current speech
     if (newSettings.enabled === false) {
       this.stop();
@@ -177,38 +182,38 @@ export class TTSService {
    */
   public async speak(queueItem: TTSQueueItem): Promise<void> {
     if (!this.isSupported() || !this.settings.enabled) {
-      throw new Error('TTS is not supported or disabled');
+      throw new Error("TTS is not supported or disabled");
     }
 
     if (this.currentUtterance) {
-      throw new Error('Another message is currently being spoken');
+      throw new Error("Another message is currently being spoken");
     }
 
     try {
       const processedText = this.preprocessMessage(queueItem.message.message);
-      
+
       if (!processedText.trim()) {
-        throw new Error('Message is empty after preprocessing');
+        throw new Error("Message is empty after preprocessing");
       }
 
       const utterance = new SpeechSynthesisUtterance(processedText);
       this.configureUtterance(utterance);
-      
+
       this.currentUtterance = utterance;
-      
+
       // Set up event handlers for the utterance
       this.setupUtteranceHandlers(utterance, queueItem);
-      
+
       // Start speaking
       this.synthesis.speak(utterance);
-      
+
       // Emit started event
-      this.emit('tts:started', queueItem);
-      
+      this.emit("tts:started", queueItem);
     } catch (error) {
       this.currentUtterance = null;
-      const errorMessage = error instanceof Error ? error.message : 'Unknown TTS error';
-      this.emit('tts:error', { item: queueItem, error: errorMessage });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown TTS error";
+      this.emit("tts:error", { item: queueItem, error: errorMessage });
       throw error;
     }
   }
@@ -239,24 +244,24 @@ export class TTSService {
     let processed = message;
 
     // Remove URLs
-    processed = processed.replace(/https?:\/\/[^\s]+/g, 'link');
-    
+    processed = processed.replace(/https?:\/\/[^\s]+/g, "link");
+
     // Remove Twitch emotes (words in all caps that are likely emotes)
-    processed = processed.replace(/\b[A-Z]{3,}\b/g, '');
-    
+    processed = processed.replace(/\b[A-Z]{3,}\b/g, "");
+
     // Remove special characters but keep basic punctuation
-    processed = processed.replace(/[^\w\s.,!?'-]/g, ' ');
-    
+    processed = processed.replace(/[^\w\s.,!?'-]/g, " ");
+
     // Replace multiple spaces with single space
-    processed = processed.replace(/\s+/g, ' ');
-    
+    processed = processed.replace(/\s+/g, " ");
+
     // Remove leading/trailing whitespace
     processed = processed.trim();
-    
+
     // Limit message length to prevent very long speeches
     const maxLength = 200;
     if (processed.length > maxLength) {
-      processed = processed.substring(0, maxLength) + '...';
+      processed = processed.substring(0, maxLength) + "...";
     }
 
     return processed;
@@ -271,13 +276,13 @@ export class TTSService {
     if (this.settings.voice) {
       utterance.voice = this.settings.voice;
     }
-    
+
     // Set volume (0-1)
     utterance.volume = Math.max(0, Math.min(1, this.settings.volume));
-    
+
     // Set rate (0.1-10)
     utterance.rate = Math.max(0.1, Math.min(10, this.settings.rate));
-    
+
     // Set pitch (0-2)
     utterance.pitch = Math.max(0, Math.min(2, this.settings.pitch));
   }
@@ -287,34 +292,34 @@ export class TTSService {
    * Requirements: 2.1
    */
   private setupUtteranceHandlers(
-    utterance: SpeechSynthesisUtterance, 
+    utterance: SpeechSynthesisUtterance,
     queueItem: TTSQueueItem
   ): void {
     utterance.onstart = () => {
-      console.log('TTS started for message:', queueItem.message.message);
+      console.log("TTS started for message:", queueItem.message.message);
     };
 
     utterance.onend = () => {
-      console.log('TTS ended for message:', queueItem.message.message);
+      console.log("TTS ended for message:", queueItem.message.message);
       this.currentUtterance = null;
-      this.emit('tts:ended', queueItem);
+      this.emit("tts:ended", queueItem);
     };
 
     utterance.onerror = (event) => {
-      console.error('TTS error:', event.error);
+      console.error("TTS error:", event.error);
       this.currentUtterance = null;
-      this.emit('tts:error', { 
-        item: queueItem, 
-        error: `Speech synthesis error: ${event.error}` 
+      this.emit("tts:error", {
+        item: queueItem,
+        error: `Speech synthesis error: ${event.error}`,
       });
     };
 
     utterance.onpause = () => {
-      console.log('TTS paused for message:', queueItem.message.message);
+      console.log("TTS paused for message:", queueItem.message.message);
     };
 
     utterance.onresume = () => {
-      console.log('TTS resumed for message:', queueItem.message.message);
+      console.log("TTS resumed for message:", queueItem.message.message);
     };
   }
 
@@ -325,10 +330,10 @@ export class TTSService {
   public setVoice(voice: SpeechSynthesisVoice | string | number): boolean {
     let targetVoice: SpeechSynthesisVoice | null = null;
 
-    if (typeof voice === 'string') {
+    if (typeof voice === "string") {
       // Find voice by name
-      targetVoice = this.availableVoices.find(v => v.name === voice) || null;
-    } else if (typeof voice === 'number') {
+      targetVoice = this.availableVoices.find((v) => v.name === voice) || null;
+    } else if (typeof voice === "number") {
       // Find voice by index
       targetVoice = this.availableVoices[voice] || null;
     } else {
@@ -378,24 +383,26 @@ export class TTSService {
   /**
    * Test TTS with a sample message
    */
-  public async testSpeak(text: string = 'This is a test message'): Promise<void> {
+  public async testSpeak(
+    text: string = "This is a test message"
+  ): Promise<void> {
     if (!this.isSupported()) {
-      throw new Error('TTS is not supported');
+      throw new Error("TTS is not supported");
     }
 
     const testMessage: ChatMessage = {
-      id: 'test',
-      username: 'test',
+      id: "test",
+      username: "test",
       message: text,
       timestamp: new Date(),
       isBot: false,
-      badges: []
+      badges: [],
     };
 
     const testQueueItem: TTSQueueItem = {
-      id: 'test',
+      id: "test",
       message: testMessage,
-      status: 'speaking'
+      status: "speaking",
     };
 
     await this.speak(testQueueItem);
