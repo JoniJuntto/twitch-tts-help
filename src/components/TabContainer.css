@@ -1,0 +1,378 @@
+/* Tab Container Component Styles */
+/* Requirements: 5.1, 5.4 - Responsive tabbed interface with consistent design */
+
+.tab-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
+}
+
+/* Tab Navigation */
+.tab-container__nav {
+  display: flex;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-primary);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tab-container__nav::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-container__tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  white-space: nowrap;
+  min-width: 120px;
+  justify-content: center;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-container__tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent, rgba(145, 70, 255, 0.05), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.tab-container__tab:hover::before {
+  opacity: 1;
+}
+
+.tab-container__tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.tab-container__tab:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.tab-container__tab--active {
+  color: var(--color-primary);
+  background: var(--bg-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.tab-container__tab--active::before {
+  opacity: 0.3;
+}
+
+/* Tab Icon */
+.tab-container__tab-icon {
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Tab Label */
+.tab-container__tab-label {
+  flex: 1;
+  text-align: center;
+}
+
+/* Tab Badge */
+.tab-container__tab-badge {
+  background: var(--color-info);
+  color: var(--text-inverse);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  min-width: 20px;
+  text-align: center;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.tab-container__tab--active .tab-container__tab-badge {
+  background: var(--color-primary);
+  transform: scale(1.1);
+}
+
+/* Tab Content */
+.tab-container__content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-container__panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-6);
+  overflow-y: auto;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--transition-normal);
+  pointer-events: none;
+}
+
+.tab-container__panel--active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Custom Scrollbar for Tab Content */
+.tab-container__panel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-primary) var(--bg-secondary);
+}
+
+.tab-container__panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tab-container__panel::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.tab-container__panel::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.tab-container__panel::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Responsive Design */
+/* Requirements: 5.1, 5.4 - Mobile-first responsive tabs */
+
+/* Small Mobile (320px - 480px) */
+@media (max-width: 480px) {
+  .tab-container__tab {
+    padding: var(--space-3) var(--space-2);
+    min-width: 80px;
+    font-size: var(--font-size-xs);
+  }
+  
+  .tab-container__tab-icon {
+    font-size: var(--font-size-base);
+  }
+  
+  .tab-container__tab-label {
+    display: none; /* Show only icons on very small screens */
+  }
+  
+  .tab-container__tab-badge {
+    font-size: 10px;
+    padding: 2px var(--space-1);
+    min-width: 16px;
+  }
+  
+  .tab-container__panel {
+    padding: var(--space-4);
+  }
+}
+
+/* Mobile (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .tab-container__tab {
+    padding: var(--space-3) var(--space-4);
+    min-width: 100px;
+  }
+  
+  .tab-container__panel {
+    padding: var(--space-5);
+  }
+}
+
+/* Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tab-container__tab {
+    min-width: 140px;
+  }
+}
+
+/* Desktop (1025px+) */
+@media (min-width: 1025px) {
+  .tab-container__tab {
+    min-width: 160px;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .tab-container__tab {
+    padding: var(--space-2) var(--space-4);
+  }
+  
+  .tab-container__panel {
+    padding: var(--space-4);
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .tab-container {
+    border: 3px solid var(--text-primary);
+  }
+  
+  .tab-container__nav {
+    border-bottom: 3px solid var(--text-primary);
+  }
+  
+  .tab-container__tab {
+    border: 2px solid transparent;
+  }
+  
+  .tab-container__tab--active {
+    border: 2px solid var(--text-primary);
+    background: var(--bg-primary);
+  }
+  
+  .tab-container__tab:focus-visible {
+    outline: 3px solid var(--text-primary);
+    outline-offset: 3px;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .tab-container__tab,
+  .tab-container__panel,
+  .tab-container__tab-badge,
+  .tab-container__tab::before {
+    transition: none;
+    animation: none;
+    transform: none;
+  }
+  
+  .tab-container__panel--active {
+    transform: none;
+  }
+  
+  .tab-container__tab--active .tab-container__tab-badge {
+    transform: none;
+  }
+}
+
+/* Light Theme Adjustments */
+@media (prefers-color-scheme: light) {
+  .tab-container {
+    box-shadow: var(--shadow-md), 0 0 20px rgba(0, 0, 0, 0.05);
+  }
+  
+  .tab-container__nav {
+    background: var(--bg-primary);
+    box-shadow: inset 0 -1px 0 var(--border-primary);
+  }
+  
+  .tab-container__tab:hover {
+    background: var(--bg-tertiary);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .tab-container {
+    background: white;
+    color: black;
+    border: 2px solid black;
+    box-shadow: none;
+  }
+  
+  .tab-container__nav {
+    background: white;
+    border-bottom: 2px solid black;
+  }
+  
+  .tab-container__tab {
+    color: black;
+    background: white;
+  }
+  
+  .tab-container__tab--active {
+    color: black;
+    background: white;
+    border-bottom: 3px solid black;
+  }
+  
+  .tab-container__panel {
+    position: static;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    padding: 1rem;
+  }
+  
+  .tab-container__panel:not(.tab-container__panel--active) {
+    display: none;
+  }
+}
+
+/* Focus Management for Screen Readers */
+.tab-container[role="region"] {
+  position: relative;
+}
+
+/* Loading State */
+.tab-container--loading .tab-container__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-container--loading .tab-container__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Animation for tab switching */
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-container__panel--active {
+  animation: tabFadeIn 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-container__panel--active {
+    animation: none;
+  }
+}
